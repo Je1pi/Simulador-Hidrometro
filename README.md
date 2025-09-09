@@ -1,3 +1,4 @@
+```mermaid
 classDiagram
     class Configuracao {
         +int tick_ms
@@ -105,8 +106,5 @@ classDiagram
     Hidrometro --> Entrada : referencia
     Hidrometro --> Relogio : referencia
 
-    HidrometroUI --> PointerPosition : usa
-
-    note for Controladora "Gerencia o loop de simulação\nAtualiza Hidrometro, Entrada, Relogio\nUsa Display para logs no terminal"
-
-    note for HidrometroUI "Interface gráfica Qt\nAtualizada por QTimer (1s)\nRecebe volume via setVolume()"
+    HidrometroUI --> PointerPosition : usa  
+```
