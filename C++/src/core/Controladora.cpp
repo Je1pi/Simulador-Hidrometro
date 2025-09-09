@@ -29,8 +29,7 @@ void Controladora::run_loop() {
     int fail_remaining_sec = 0;
 
     while (running) {
-        auto start = std::chrono::steady_clock::now();
-        display.show(hidrometro.get_total_volume_l(), entrada.get_flow_mm(), relogio.now());
+        auto start = std::chrono::steady_clock::now();        
 
         if (!entrada.is_forced_fail()) {
             if (!currently_failed) {
@@ -38,14 +37,12 @@ void Controladora::run_loop() {
                 if (r < per_tick_fail_prob) {
                     currently_failed = true;
                     fail_remaining_sec = failDur(rng);
-                    std::cout << "[EVENT] Falta de água aleatória por " << fail_remaining_sec << "s\n";
                 }
             }
         } else {
             if (!currently_failed) {
                 currently_failed = true;
                 fail_remaining_sec = cfg.fail_duration_sec_max;
-                std::cout << "[EVENT] Falta de água FORÇADA\n";
             }
         }
 
@@ -56,7 +53,6 @@ void Controladora::run_loop() {
 
         if (!water_available && cfg.simulate_air_volume) {
             hidrometro.update(tick_sec, true, cfg.air_volume_rate);
-            std::cout << "[ALERTA] Volume de ar sendo registrado devido à falta de água.\n";
         } else {
             hidrometro.update(tick_sec, water_available);
         }
@@ -66,22 +62,20 @@ void Controladora::run_loop() {
         if (currently_failed && !entrada.is_forced_fail()) {
             fail_remaining_sec -= tick_sec;
             if (fail_remaining_sec <= 0) {
-                currently_failed = false;
-                std::cout << "[EVENT] Falta de água terminou\n";
+                currently_failed = false;                
             }
         }
 
         log_counter++;
         if (log_counter >= log_interval_ticks) {
             log_counter = 0;
-            printf("[LOG] t=%llds total=%.3f L flow=%.2f mm\n",
-                   relogio.now(), hidrometro.get_total_volume_l(), entrada.get_flow_mm());
         }
 
         auto end = std::chrono::steady_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
         int sleep_ms = tick_ms - (int)elapsed;
         if (sleep_ms > 0) std::this_thread::sleep_for(std::chrono::milliseconds(sleep_ms));
+        display.show(hidrometro.get_total_volume_l(), entrada.get_flow_mm(), relogio.now());
     }
 }
 
@@ -109,12 +103,6 @@ void Controladora::save_config(const std::string &fn) {
 
 void Controladora::set_minmax(double mn, double mx) {
     entrada.set_min_max(mn, mx);
-}
-
-void Controladora::print_status() {
-    printf("STATUS: t=%llds flow=%.2f mm total=%.3f L forced_fail=%d\n",
-           relogio.now(), entrada.get_flow_mm(), hidrometro.get_total_volume_l(),
-           (int)entrada.is_forced_fail());
 }
 
 double Controladora::getVolumeTotal() const {

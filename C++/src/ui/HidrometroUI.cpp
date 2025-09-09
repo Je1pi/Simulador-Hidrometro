@@ -34,12 +34,13 @@ void HidrometroUI::setVolume(double volume) {
 }
 
 void HidrometroUI::drawDigits(QPainter &painter, double total_volume_l) {
-    long long total_litros = static_cast<long long>(floor(total_volume_l));
+    // litros inteiros
+    long long litros_int = static_cast<long long>(floor(total_volume_l));
 
-    long long m3 = total_litros / 1000;
-    int centenas_litros = (total_litros / 100) % 10;
-    int dezenas_litros = (total_litros / 10) % 10;
-    int unidades_litros = total_litros % 10;
+    // cálculo odométrico
+    int m3              = static_cast<int>(litros_int / 1000);
+    int centenas_litros = (litros_int / 100) % 10;
+    int dezenas_litros  = (litros_int / 10) % 10;
 
     QFont font("Arial", 18, QFont::Bold);
     painter.setFont(font);
@@ -48,16 +49,14 @@ void HidrometroUI::drawDigits(QPainter &painter, double total_volume_l) {
     int x_offset = 307;
     int y_offset = 191;
 
-    painter.drawText(x_offset, y_offset, QString::number((m3 / 100) % 10));
-    painter.drawText(x_offset + 22, y_offset, QString::number((m3 / 10) % 10));
-    painter.drawText(x_offset + 44, y_offset, QString::number(m3 % 10));
-
-    painter.drawText(x_offset + 65, y_offset, QString::number(centenas_litros));
+    painter.drawText(x_offset, y_offset, QString::number((m3 / 1000) % 10));
+    painter.drawText(x_offset + 22, y_offset, QString::number((m3 / 100) % 10));
+    painter.drawText(x_offset + 44, y_offset, QString::number((m3 / 10) % 10));
+    painter.drawText(x_offset + 65, y_offset, QString::number((m3 % 10)));
 
     painter.setPen(Qt::red);
-
-    painter.drawText(x_offset + 87, y_offset, QString::number(dezenas_litros));
-    painter.drawText(x_offset + 109, y_offset, QString::number(unidades_litros));
+    painter.drawText(x_offset + 87, y_offset, QString::number(centenas_litros));
+    painter.drawText(x_offset + 109, y_offset, QString::number(dezenas_litros));
 
     painter.setPen(Qt::black);
 }

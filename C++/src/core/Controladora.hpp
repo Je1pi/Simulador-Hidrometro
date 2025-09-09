@@ -19,7 +19,6 @@ public:
     void toggle_fail_forced();
     void save_config(const std::string &fn);
     void set_minmax(double mn, double mx);
-    void print_status();
     double getVolumeTotal() const;
     double getFluxoAtual() const;
 

@@ -10,6 +10,10 @@ void Hidrometro::update(int tick_sec, bool water_available, double air_volume_ra
     } else {
         total_volume_l += air_volume_rate * tick_sec;
     }
+
+    if (total_volume_l >= 9999999.0) {
+        total_volume_l = 0.0;
+    }
 }
 
 double Hidrometro::get_total_volume_l() const {
