@@ -1,0 +1,13 @@
+{
+    "intervalo_tick_ms": 1000,
+    "fluxo_inicial_mm": 20.0,
+    "fluxo_minimo_mm":0.0,
+    "fluxo_maximo_mm": 100.0,
+    "probabilidade_falha_aleatoria_por_min": 0.10,
+    "duracao_minima_falha_seg": 5,
+    "duracao_maxima_falha_seg": 10,
+    "simular_variacao_pressao": true,
+    "intervalo_log_seg": 5,
+    "simular_volume_ar": true,
+    "taxa_volume_ar": 0.1
+}
