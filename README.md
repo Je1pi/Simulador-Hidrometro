@@ -10,19 +10,19 @@ O projeto simula um hidr√¥metro, desenvolvido em C++, onde simula o consumo de √
 ```mermaid
 classDiagram
     class Configuracao {
-        +tick_ms
-        +fluxo_inicial_mm
-        +fluxo_minimo_mm
-        +fluxo_maximo_mm
-        +probabilidade_falha_aleatoria_por_min
-        +fail_duration_sec_min
-        +fail_duration_sec_max
-        +simulate_pressure_variation
-        +log_interval_sec
-        +simulate_air_volume
-        +air_volume_rate
-        +load_from_file(filename)
-        +save_to_file(filename)
+        +tick_ms: int
+        +fluxo_inicial_mm: double
+        +fluxo_minimo_mm: double
+        +fluxo_maximo_mm: double
+        +probabilidade_falha_aleatoria_por_min: double
+        +fail_duration_sec_min: int
+        +fail_duration_sec_max: int
+        +simulate_pressure_variation: bool
+        +log_interval_sec: int
+        +simulate_air_volume: bool
+        +air_volume_rate: double
+        +load_from_file(filename): bool
+        +save_to_file(filename): void
     }
 
     class Controladora {
@@ -35,21 +35,23 @@ classDiagram
         -sim_thread: thread
         -rng: mt19937
         -per_tick_fail_prob: double
+        -currently_failed_flag: atomic<bool>
         +Controladora(cfg)
-        +start()
-        +stop()
-        +set_flow(v)
-        +toggle_fail_forced()
-        +save_config(fn)
-        +set_minmax(mn, mx)
-        +getVolumeTotal()
-        +getFluxoAtual()
-        +isCurrentlyFailed()
+        +start(): void
+        +stop(): void
+        +set_flow(v): void
+        +toggle_fail_forced(): void
+        +save_config(fn): void
+        +set_minmax(mn, mx): void
+        +getVolumeTotal(): double
+        +getFluxoAtual(): double
+        +isCurrentlyFailed(): bool
     }
 
     class Display {
-        +show(total_volume_l, fluxoAtual, tsec, fail_duration, fail_remaining)
-        +clearScreen()
+        +show(total_volume_l, fluxoAtual, tsec): void
+        +show(total_volume_l, fluxoAtual, tsec, fail_duration, fail_remaining): void
+        +clearScreen(): void
     }
 
     class Entrada {
@@ -58,12 +60,12 @@ classDiagram
         -max_flow: double
         -forced_fail: bool
         +Entrada(initial_flow, min_flow, max_flow)
-        +set_flow_mm(flow)
-        +get_flow_mm()
-        +set_min_max(min, max)
-        +force_fail(fail)
-        +is_forced_fail()
-        +simulate_variation(simulate)
+        +set_flow_mm(flow): void
+        +get_flow_mm(): double
+        +set_min_max(min, max): void
+        +force_fail(fail): void
+        +is_forced_fail(): bool
+        +simulate_variation(simulate): void
     }
 
     class Hidrometro {
@@ -71,32 +73,44 @@ classDiagram
         -relogio: Relogio&
         -total_volume_l: double
         +Hidrometro(entrada, relogio)
-        +update(tick_sec, water_available, air_volume_rate)
-        +get_total_volume_l()
+        +update(tick_sec, water_available, air_volume_rate): void
+        +get_total_volume_l(): double
     }
 
     class Relogio {
         -seconds_elapsed: atomic<long long>
         +Relogio()
-        +tick(sec)
-        +now()
+        +tick(sec): void
+        +now(): long long
     }
 
     class HidrometroUI {
         -fundo: QPixmap
         -ponteiro: QPixmap
         -currentVolume: double
+        -currentFlow: double
+        -faltaAgua: bool
+        -btnMais: QPushButton*
+        -btnMenos: QPushButton*
+        -lblFlow: QLabel*
+        -lblFlowValue: QLabel*
+        -flowLayout: QHBoxLayout*
+        -timerMais: QTimer*
+        -timerMenos: QTimer*
         -litrosPositions: PointerPosition[10]
         -decimosPositions: PointerPosition[10]
         +HidrometroUI(initialFlow, parent)
-        +setVolume(volume)
-        +savePointerConfig(filename)
-        +loadPointerConfig(filename)
-        +setFaltaAgua(falta)
-        +drawDigits(painter, total_volume_l)
-        +drawPointers(painter, total_volume_l)
-        +drawPointer(painter, value, isDecimos)
-        +paintEvent(event)
+        +saveCurrentImage(m3): void
+        +ajustarCentralizacaoFlow(): void
+        +setFaltaAgua(falta): void
+        +drawDigits(painter, total_volume_l): void
+        +drawPointers(painter, total_volume_l): void
+        +drawPointer(painter, value, isDecimos): void
+        +setVolume(volume): void
+        +savePointerConfig(filename): void
+        +loadPointerConfig(filename): void
+        +paintEvent(event): void
+        +flowChanged(newFlow): signal
     }
 
     class PointerPosition {
