@@ -1,16 +1,18 @@
 #include "Display.hpp"
 
-void Display::show(double total_volume_l, double fluxoAtual, long long tsec) {
+void Display::show(double total_volume_l, double fluxoAtual, long long tsec, int fail_duration, int fail_remaining) {
     clearScreen();
     
+    /*
     std::cout << "\n===== HIDROMETRO (t=" << tsec << "s) =====\n";
     std::cout << "Volume total: " << std::fixed << std::setprecision(2)
     << total_volume_l << " m3\n";
     std::cout << "Fluxo atual: " << std::fixed << std::setprecision(2)
     << fluxoAtual << " mm\n";
     std::cout << "=====================================\n";
+    */
 
-    /* long long total_litros = static_cast<long long>(floor(total_volume_l));
+    long long total_litros = static_cast<long long>(floor(total_volume_l));
     long long m3 = total_litros / 1000;
     int centenas_litros = (total_litros / 100) % 10;
     int dezenas_litros = (total_litros / 10) % 10;
@@ -27,13 +29,16 @@ void Display::show(double total_volume_l, double fluxoAtual, long long tsec) {
     std::cout << "Volume total: " << std::fixed << std::setprecision(3)
               << total_volume_l << " L\n";
 
+    std::cout << "Fluxo atual: " << std::fixed << std::setprecision(2)
+                << fluxoAtual << " mm\n";
+
     std::cout << "\n--- Visor Principal ---\n";
-    std::cout << "[ " << (m3 / 100) % 10
+    std::cout << "[ " << (m3 / 1000) % 10
+              << " ][ " << (m3 / 100) % 10
               << " ][ " << (m3 / 10) % 10
-              << " ][ " << m3 % 10
+              << " ][ " << (m3 % 10)
               << " ][ " << centenas_litros
               << " ][ " << dezenas_litros
-              << " ][ " << unidades_litros
               << " ]  (m³ e litros)\n";
 
     std::cout << "\n--- Ponteiros ---\n";
@@ -41,7 +46,12 @@ void Display::show(double total_volume_l, double fluxoAtual, long long tsec) {
               << " (~" << ang_litros << "°)\n";
     std::cout << "Décimos: " << ponteiro_decimos
               << " (~" << ang_decimos << "°)\n";
-    std::cout << "=====================================\n"; */
+    if (fail_duration > 0) {
+        std::cout << "\n--- FALHA ---" << std::endl;
+        std::cout << "Tempo total da falha: " << fail_duration << " s" << std::endl;
+        std::cout << "Tempo restante: " << fail_remaining << " s" << std::endl;
+    }
+    std::cout << "=====================================\n";
 }
 
 void Display::clearScreen() {

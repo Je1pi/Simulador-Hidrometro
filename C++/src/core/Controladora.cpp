@@ -27,6 +27,7 @@ void Controladora::run_loop() {
     int log_interval_ticks = std::max(1, cfg.log_interval_sec / std::max(1, tick_sec));
     bool currently_failed = false;
     int fail_remaining_sec = 0;
+        int fail_total_sec = 0;
 
     while (running) {
         auto start = std::chrono::steady_clock::now();        
@@ -37,24 +38,29 @@ void Controladora::run_loop() {
                 if (r < per_tick_fail_prob) {
                     currently_failed = true;
                     fail_remaining_sec = failDur(rng);
+                    fail_total_sec = fail_remaining_sec;
                 }
             }
         } else {
             if (!currently_failed) {
                 currently_failed = true;
                 fail_remaining_sec = cfg.fail_duration_sec_max;
+                fail_total_sec = fail_remaining_sec;
             }
         }
+        currently_failed_flag.store(currently_failed);
 
         entrada.simulate_variation(cfg.simulate_pressure_variation);
 
         bool water_available = !currently_failed && !entrada.is_forced_fail();
         if (entrada.is_forced_fail()) water_available = false;
 
-        if (!water_available && cfg.simulate_air_volume) {
-            hidrometro.update(tick_sec, true, cfg.air_volume_rate);
+        if (!water_available) {
+            double flow_mm = entrada.get_flow_mm();
+            double air_flow_lps = (flow_mm * cfg.air_volume_rate) / 1000.0;
+            hidrometro.update(tick_sec, false, air_flow_lps);
         } else {
-            hidrometro.update(tick_sec, water_available);
+            hidrometro.update(tick_sec, true);
         }
 
         relogio.tick(tick_sec);
@@ -62,9 +68,10 @@ void Controladora::run_loop() {
         if (currently_failed && !entrada.is_forced_fail()) {
             fail_remaining_sec -= tick_sec;
             if (fail_remaining_sec <= 0) {
-                currently_failed = false;                
+                currently_failed = false;
             }
         }
+        currently_failed_flag.store(currently_failed);
 
         log_counter++;
         if (log_counter >= log_interval_ticks) {
@@ -75,7 +82,7 @@ void Controladora::run_loop() {
         auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
         int sleep_ms = tick_ms - (int)elapsed;
         if (sleep_ms > 0) std::this_thread::sleep_for(std::chrono::milliseconds(sleep_ms));
-        display.show(hidrometro.get_total_volume_l(), entrada.get_flow_mm(), relogio.now());
+    display.show(hidrometro.get_total_volume_l(), getFluxoAtual(), relogio.now(), fail_total_sec, currently_failed ? fail_remaining_sec : 0);
     }
 }
 
@@ -109,6 +116,16 @@ double Controladora::getVolumeTotal() const {
     return hidrometro.get_total_volume_l();
 }
 
+
+
+
 double Controladora::getFluxoAtual() const {
+    if (isCurrentlyFailed()) {
+        return entrada.get_flow_mm() * cfg.air_volume_rate;
+    }
     return entrada.get_flow_mm();
+}
+
+bool Controladora::isCurrentlyFailed() const {
+    return currently_failed_flag.load();
 }

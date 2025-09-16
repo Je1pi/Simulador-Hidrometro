@@ -21,6 +21,7 @@ public:
     void set_minmax(double mn, double mx);
     double getVolumeTotal() const;
     double getFluxoAtual() const;
+    bool isCurrentlyFailed() const;
 
 private:
     void run_loop();
@@ -34,6 +35,7 @@ private:
     std::thread sim_thread;
     std::mt19937 rng;
     double per_tick_fail_prob = 0.0;
+    std::atomic<bool> currently_failed_flag{false};
 };
 
 #endif
