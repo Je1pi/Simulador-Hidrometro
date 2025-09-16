@@ -1,6 +1,6 @@
 
 ## Simulador de Hidrometro
-![Programa em Ação](Aplicação-Simulador-Hidrometro.png) 
+![Programa em Ação](Aplicação-SHA.png) 
 
 Projeto para a disciplina de Padrões de Projeto do curso de Engenharia de Computação do IFPB Campus Campina Grande.
 

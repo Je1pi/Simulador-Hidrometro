@@ -1,8 +1,8 @@
 {
     "intervalo_tick_ms": 1000,
-    "fluxo_inicial_mm": 100000.0,
+    "fluxo_inicial_mm": 100.0,
     "fluxo_minimo_mm": 0.0,
-    "fluxo_maximo_mm": 10000000.0,
+    "fluxo_maximo_mm": 1000.0,
     "probabilidade_falha_aleatoria_por_min": 0.20,
     "duracao_minima_falha_seg": 5,
     "duracao_maxima_falha_seg": 10,
