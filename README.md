@@ -1,4 +1,3 @@
-
 ## Simulador de Hidrometro
 ![Programa em Ação](Aplicação-SHA.png) 
 
@@ -131,3 +130,26 @@ classDiagram
 
     HidrometroUI --> PointerPosition : usa
 ```
+
+## Manutençao do SHA V2
+
+### Uso de `std::unique_ptr`
+
+Para resolver problemas relacionados à cópia e movimentação de objetos, o código foi atualizado para utilizar `std::unique_ptr` no armazenamento de objetos `Controladora` e `HidrometroUI`. Isso garante que os objetos sejam gerenciados corretamente na memória e evita erros de compilação relacionados a construtores de cópia ou movimentação deletados.
+
+### Como Usar
+
+1. Certifique-se de que o Qt5 está instalado no sistema e que os caminhos para os cabeçalhos e bibliotecas estão configurados corretamente no `Makefile`.
+2. Compile o projeto utilizando o comando:
+   ```bash
+   make
+   ```
+3. Execute o simulador com o comando:
+   ```bash
+   ./hidrometro_sim [número_de_threads]
+   ```
+   - Substitua `[número_de_threads]` pelo número desejado de threads para simular múltiplos hidrômetros simultaneamente.
+
+### Benefícios das Alterações
+- Melhor gerenciamento de memória com `std::unique_ptr`.
+- Resolução de problemas de compilação relacionados a classes que não possuem construtores de cópia ou movimentação válidos.

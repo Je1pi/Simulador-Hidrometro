@@ -1,26 +1,13 @@
 #include <QApplication>
 #include <QTimer>
 #include <QDebug>
+#include <vector>
+#include <memory>
 #include "../routes/routes.hpp"
 #include "../core/Controladora.hpp"
 #include "../ui/HidrometroUI.hpp"
 
-int main(int argc, char *argv[]) {
-    QApplication app(argc, argv);
-
-    Configuracao cfg;
-    if (cfg.load_from_file(Routes::CONFIG_FILE)) {
-        qDebug() << "Configuracao carregada de:" << Routes::CONFIG_FILE.c_str();
-    } else {
-        qDebug() << "Nenhuma configuracao encontrada. Usando valores padrao.";
-    }
-
-    Controladora ctrl(cfg);
-    ctrl.start();
-
-    HidrometroUI ui(ctrl.getFluxoAtual());
-    ui.show();
-
+void createConectWindow(Controladora &ctrl, HidrometroUI &ui, Configuracao &cfg) {
     QTimer *timer = new QTimer(&ui);
     static int lastSavedM3 = -1;
     QObject::connect(timer, &QTimer::timeout, [&]() {
@@ -46,6 +33,34 @@ int main(int argc, char *argv[]) {
         ctrl.stop();
         qDebug() << "Simulacao encerrada.";
     });
+}
 
-    return app.exec();
+int main(int argc, char *argv[]) {
+
+    QApplication app(argc, argv);
+    
+    int numberOfThreads = argc > 1 ? atoi(argv[1]) : 1;
+    numberOfThreads = std::max(1, std::min(5, numberOfThreads));
+
+    Configuracao cfg;
+    if (cfg.load_from_file(Routes::CONFIG_FILE)) {
+        qDebug() << "Configuracao carregada de:" << Routes::CONFIG_FILE.c_str();
+    } else {
+        qDebug() << "Nenhuma configuracao encontrada. Usando valores padrao.";
+    }
+
+    std::vector<std::unique_ptr<Controladora>> ctrls;
+    std::vector<std::unique_ptr<HidrometroUI>> uis;
+
+    for (int i = 0; i < numberOfThreads; ++i) {
+        ctrls.push_back(std::make_unique<Controladora>(cfg));
+        ctrls[i]->start();
+        uis.push_back(std::make_unique<HidrometroUI>(ctrls[i]->getFluxoAtual()));
+        uis[i]->show();
+        createConectWindow(*ctrls[i], *uis[i], cfg);
+    }
+
+    app.exec();
+
+    return 0;
 }
