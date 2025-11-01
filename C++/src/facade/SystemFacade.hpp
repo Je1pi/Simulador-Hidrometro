@@ -31,22 +31,24 @@ public:
     }
 
     ~SystemFacade() {
-        // Parar todas as controladoras primeiro
+        // Parar todas as controladoras primeiro (thread-safe)
         for (std::unique_ptr<Controladora> &ctrl : this->ctrls) {
             if (ctrl) {
                 ctrl->stop();
             }
         }
         
-        // Fechar todas as UIs diretamente - evita deadlock no encerramento
+        // Usar deleteLater() para UIs - é thread-safe e evita problemas com timers
         for (std::unique_ptr<HidrometroUI> &ui : this->uis) {
             if (ui) {
-                ui->close();
+                ui->deleteLater();
+                ui.release(); // Liberar sem chamar destrutor
             }
         }
         
         this->ctrls.clear();
         this->uis.clear();
+        this->id_to_index_map.clear();
     }
 
     bool configSimulatorSHA(string filename = Routes::CONFIG_FILE);

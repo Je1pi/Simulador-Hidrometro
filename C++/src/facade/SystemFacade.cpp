@@ -106,12 +106,13 @@ bool SystemFacade::finalizaSHA(int sha_id){
             return false;
         }
         
-        // Parar a controladora primeiro
+        // Parar a controladora primeiro (thread-safe)
         ctrls[index]->stop();
         
-        // Fechar UI apenas se ela existe - será executado na thread principal automaticamente
+        // Se existe UI, usar deleteLater() que é thread-safe
         if (index < static_cast<int>(uis.size()) && uis[index]) {
-            uis[index]->close();
+            uis[index]->deleteLater();
+            uis[index].release(); // Liberar sem chamar destrutor
         }
         
         // Remover da lista de controladoras
