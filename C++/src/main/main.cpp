@@ -1,66 +1,18 @@
-#include <QApplication>
-#include <QTimer>
-#include <QDebug>
-#include <vector>
-#include <memory>
-#include "../routes/routes.hpp"
-#include "../core/Controladora.hpp"
-#include "../ui/HidrometroUI.hpp"
-
-void createConectWindow(Controladora &ctrl, HidrometroUI &ui, Configuracao &cfg) {
-    QTimer *timer = new QTimer(&ui);
-    static int lastSavedM3 = -1;
-    QObject::connect(timer, &QTimer::timeout, [&]() {
-        double currentVolume = ctrl.getVolumeTotal();
-        ui.setVolume(currentVolume);
-        bool faltaAgua = ctrl.isCurrentlyFailed();
-        ui.setFaltaAgua(faltaAgua);
-        int m3 = static_cast<int>(currentVolume / 1000.0);
-        if (static_cast<int>((currentVolume - ctrl.getFluxoAtual() / 1000.0) / 1000.0) < m3 && m3 != lastSavedM3) {
-            ui.saveCurrentImage(m3);
-            lastSavedM3 = m3;
-        }
-    });
-    timer->start(1000);
-
-    QObject::connect(&ui, &HidrometroUI::flowChanged, [&](double newFlow) {
-        // if (ctrl.isCurrentlyFailed()) return;
-        if (newFlow > cfg.fluxo_maximo_mm) newFlow = cfg.fluxo_maximo_mm;
-        ctrl.set_flow(newFlow);
-    });
-
-    QObject::connect(&ui, &HidrometroUI::destroyed, [&]() {
-        ctrl.stop();
-        qDebug() << "Simulacao encerrada.";
-    });
-}
+#include "../client/Client.hpp"
+#include <iostream>
 
 int main(int argc, char *argv[]) {
-
-    QApplication app(argc, argv);
-    
-    int numberOfThreads = argc > 1 ? atoi(argv[1]) : 1;
-    numberOfThreads = std::max(1, std::min(5, numberOfThreads));
-
-    Configuracao cfg;
-    if (cfg.load_from_file(Routes::CONFIG_FILE)) {
-        qDebug() << "Configuracao carregada de:" << Routes::CONFIG_FILE.c_str();
-    } else {
-        qDebug() << "Nenhuma configuracao encontrada. Usando valores padrao.";
+    try {
+        std::cout << "Iniciando Cliente CLI do Simulador SHA..." << std::endl;
+        
+        // Criar cliente e iniciar CLI em thread separada
+        Client client(argc, argv);
+        
+        // O método run() agora gerencia threads e executa o Qt na main thread
+        return client.run();
+        
+    } catch (const std::exception &e) {
+        std::cerr << "Erro fatal no cliente CLI: " << e.what() << std::endl;
+        return -1;
     }
-
-    std::vector<std::unique_ptr<Controladora>> ctrls;
-    std::vector<std::unique_ptr<HidrometroUI>> uis;
-
-    for (int i = 0; i < numberOfThreads; ++i) {
-        ctrls.push_back(std::make_unique<Controladora>(cfg));
-        ctrls[i]->start();
-        uis.push_back(std::make_unique<HidrometroUI>(ctrls[i]->getFluxoAtual()));
-        uis[i]->show();
-        createConectWindow(*ctrls[i], *uis[i], cfg);
-    }
-
-    app.exec();
-
-    return 0;
 }

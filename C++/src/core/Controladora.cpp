@@ -4,11 +4,13 @@
 #include <chrono>
 #include <thread>
 
-Controladora::Controladora(const Configuracao &cfg)
+Controladora::Controladora(const Configuracao &cfg, bool display_state)
     : cfg(cfg),
       entrada(cfg.fluxo_inicial_mm, cfg.fluxo_minimo_mm, cfg.fluxo_maximo_mm),
+      display(display_state),
       hidrometro(entrada, relogio),
-      running(false), rng(std::random_device{}()) {
+      running(false), 
+      rng(std::random_device{}()) {
     double prob_per_min = cfg.probabilidade_falha_aleatoria_por_min;
     double tick_seconds = cfg.tick_ms / 1000.0;
     if (prob_per_min <= 0) per_tick_fail_prob = 0.0;
@@ -82,7 +84,9 @@ void Controladora::run_loop() {
         auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
         int sleep_ms = tick_ms - (int)elapsed;
         if (sleep_ms > 0) std::this_thread::sleep_for(std::chrono::milliseconds(sleep_ms));
-    display.show(hidrometro.get_total_volume_l(), getFluxoAtual(), relogio.now(), fail_total_sec, currently_failed ? fail_remaining_sec : 0);
+        if (display.isActive()) {
+            display.show(hidrometro.get_total_volume_l(), getFluxoAtual(), relogio.now(), fail_total_sec, currently_failed ? fail_remaining_sec : 0);
+        }
     }
 }
 

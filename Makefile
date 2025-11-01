@@ -10,6 +10,8 @@ SRC_DIR = C++/src
 CORE_DIR = $(SRC_DIR)/core
 MAIN_DIR = $(SRC_DIR)/main
 UI_DIR = $(SRC_DIR)/ui
+FACADE_DIR = $(SRC_DIR)/facade
+CLIENT_DIR = $(SRC_DIR)/client
 BUILD_DIR = build
 
 # Compilador e flags
@@ -17,15 +19,20 @@ CXX = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra -fPIC -I$(SRC_DIR) -I./libs -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore
 LDFLAGS = -L/usr/lib/x86_64-linux-gnu -lQt5Widgets -lQt5Core -lQt5Gui
 
-# Arquivos fonte
+# Arquivos fonte comuns
+COMMON_SRCS = $(CORE_DIR)/Configuracao.cpp \
+              $(CORE_DIR)/Controladora.cpp \
+              $(CORE_DIR)/Entrada.cpp \
+              $(CORE_DIR)/Hidrometro.cpp \
+              $(CORE_DIR)/Display.cpp \
+              $(CORE_DIR)/Relogio.cpp \
+              $(UI_DIR)/HidrometroUI.cpp \
+              $(FACADE_DIR)/SystemFacade.cpp
+
+# Arquivos fonte para aplicação (agora usa CLI diretamente)
 SRCS = $(MAIN_DIR)/main.cpp \
-       $(CORE_DIR)/Configuracao.cpp \
-       $(CORE_DIR)/Controladora.cpp \
-       $(CORE_DIR)/Entrada.cpp \
-       $(CORE_DIR)/Hidrometro.cpp \
-       $(CORE_DIR)/Display.cpp \
-       $(CORE_DIR)/Relogio.cpp \
-       $(UI_DIR)/HidrometroUI.cpp
+       $(CLIENT_DIR)/Client.cpp \
+       $(COMMON_SRCS)
 
 # Arquivos objeto
 OBJS = $(SRCS:$(SRC_DIR)/%.cpp=$(BUILD_DIR)/%.o)
@@ -72,6 +79,9 @@ $(BUILD_DIR):
 	@mkdir -p $(BUILD_DIR)/main
 	@mkdir -p $(BUILD_DIR)/core
 	@mkdir -p $(BUILD_DIR)/ui
+	@mkdir -p $(BUILD_DIR)/facade
+	@mkdir -p $(BUILD_DIR)/client
+
 
 -include $(DEPS)
 
@@ -81,8 +91,8 @@ clean:
 
 help:
 	@echo "Opções:"
-	@echo "  make          - Compila em release"
+	@echo "  make          - Compila a aplicação CLI"
 	@echo "  make debug    - Compila em debug"
-	@echo "  make run      - Compila e executa"
+	@echo "  make run      - Compila e executa aplicação CLI"
 	@echo "  make clean    - Limpa tudo"
 	@echo "  make rebuild  - Rebuild completo"

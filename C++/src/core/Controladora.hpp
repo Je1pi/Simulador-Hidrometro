@@ -12,7 +12,7 @@
 
 class Controladora {
 public:
-    Controladora(const Configuracao &cfg);
+    Controladora(const Configuracao &cfg, bool display_state = true);
     void start();
     void stop();
     void set_flow(double v);
